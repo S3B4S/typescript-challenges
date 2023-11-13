@@ -18,31 +18,6 @@
 
 /* _____________ Your Code Here _____________ */
 
-// Distributed conditional types: https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
-type ToArray<T, U> = T extends any ? (T | U)[] : never
-type Arrayd = ToArray<number | false, string | Function>
-// Arrayd: (string | number | Function)[] | (string | false | Function)[]
-type ArraydReverse = ToArray<string | Function, number | false>
-// ArraydReverse: (string | number | false)[] | (number | false | Function)[]
-// Conclusion: "iterates" over the first union and adds the second union to each element
-
-// "Evaluation flow" for ArraydReverse
-type XStep1 = ToArray<string | Function, number | false>
-type XStep2 = string extends any ? (string | number | false)[] : never
-              | Function extends any ? (Function | number | false)[] : never
-type XStep3 = (string | number | false)[] | (Function | number | false)[]
-
-// This is a distributed conditional type
-type IsInUnion<T, U> = Equal<T, U> extends true ? true : false
-type IsInUnionNumbers = IsInUnion<2 | 7, 7>
-// X: false
-
-// "Evaluation flow" for IsInUnionNumbers
-type Step1 = IsInUnion<2 | 7, 7>
-type Step2 = Equal<2, 7> extends true ? true : false | Equal<7, 7> extends true ? true : false
-type Step3 = false | true // equal to boolean
-// So why is X not a boolean?
-
 type Includes<T extends readonly any[], U> = T extends [infer H, ...infer R] 
   ? (Equal<H, U> extends true ? true : Includes<R, U>)
   : false
@@ -76,3 +51,33 @@ type cases = [
   > More Challenges: https://tsch.js.org
 */
   
+
+/* --- Experimenting with Distributed Conditional Types to learn --- */
+// Distributed conditional types: https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
+type ToArray<T, U> = T extends any ? (T | U)[] : never
+type Arrayd = ToArray<number | false, string | Function>
+// Arrayd: (string | number | Function)[] | (string | false | Function)[]
+type ArraydReverse = ToArray<string | Function, number | false>
+// ArraydReverse: (string | number | false)[] | (number | false | Function)[]
+// Conclusion: "iterates" over the first union and adds the second union to each element
+
+// "Evaluation flow" for ArraydReverse
+type XStep1 = ToArray<string | Function, number | false>
+type XStep2 = string extends any ? (string | number | false)[] : never
+              | Function extends any ? (Function | number | false)[] : never
+type XStep3 = (string | number | false)[] | (Function | number | false)[]
+
+// This is a distributed conditional type
+type IsInUnion<T, U> = Equal<T, U> extends true ? true : false
+type IsInUnionNumbers = IsInUnion<2 | 7, 7>
+// IsInUnionNumbers: false
+
+// "Evaluation flow" for IsInUnionNumbers
+type Step1 = IsInUnion<2 | 7, 7>
+type Step2 = Equal<2, 7> extends true ? true : false | Equal<7, 7> extends true ? true : false
+type Step3 = false | true // equal to boolean
+// So why is X not a boolean?
+// Answer: Because Equal<T, U> extends true is not a "naked" T, so it's not a distributed conditional type, there's a workaround:
+type IsInUnionW<T, U> = T extends any ? (Equal<T, U> extends true ? true : false) : never
+type IsInUnionNumbersW = IsInUnionW<2 | 7, 7>
+// IsInUnionNumbersW: boolean

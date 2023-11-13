@@ -20,7 +20,7 @@ const splittedUrl = url.split('/')
 if (splittedUrl.length < 2) throw new Error('Invalid URL')
 
 const puzzleNameRaw = splittedUrl.at(-2)! // We determined above that the length is at least 2
-const [rawChallengeId, _, ...rest] = puzzleNameRaw.split('-')
+const [rawChallengeId, difficulty, ...rest] = puzzleNameRaw.split('-')
 const challengeId = rawChallengeId.replace(/^0+/, '')
 const puzzleName = rest.join('-')
 
@@ -28,21 +28,9 @@ const getRawContentUrl = `https://raw.githubusercontent.com/type-challenges/type
 fetch(getRawContentUrl)
   .then(data => data.text())
   .then(async (text) => {
-    let targetDirectory: Difficulty
+    let targetDirectory: Difficulty = difficulty as Difficulty
 
     console.log("Get the puzzle content from: " + getPlayUrl(challengeId))
-
-    if (text.includes(Difficulty.easy)) {
-      targetDirectory = Difficulty.easy
-    } else if (text.includes(Difficulty.medium)) {
-      targetDirectory = Difficulty.medium
-    } else if (text.includes(Difficulty.hard)) {
-      targetDirectory = Difficulty.hard
-    } else if (text.includes(Difficulty.extreme)) {
-      targetDirectory = Difficulty.extreme
-    } else {
-      throw new Error("Difficulty not found")
-    }
 
     if (!fs.existsSync(targetDirectory)) {
       fs.mkdirSync(targetDirectory)
